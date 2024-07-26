@@ -13,15 +13,16 @@
 <body class="bg-gray-100 p-8">
     <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
         <h1 class="text-3xl font-bold mb-4 text-gray-800">GitHub to Markdown Converter</h1>
+        <p class="mb-6 text-gray-600">Convert your GitHub repository structure into a single Markdown file. Simply sign in with GitHub, enter your repository URL, and customize exclusions if needed.</p>
         <div id="auth-section" class="mb-4">
             <button id="github-login" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">Sign in with GitHub</button>
             <span id="user-info" class="ml-4 hidden"></span>
         </div>
         <form id="repo-form" class="mb-4 hidden">
-            <input type="text" id="repo-url" placeholder="Enter GitHub repo URL" required class="w-full p-2 border rounded mb-2">
+            <input type="text" id="repo-url" placeholder="Enter GitHub repo URL (e.g., https://github.com/username/repo)" required class="w-full p-2 border rounded mb-2">
             <input type="text" id="exclude-types" placeholder="Exclude file types (e.g., .pyc,.txt)" class="w-full p-2 border rounded mb-2">
-            <input type="text" id="exclude-dirs" placeholder="Exclude directories (comma-separated)" class="w-full p-2 border rounded mb-2">
-            <input type="text" id="exclude-files" placeholder="Exclude specific files (comma-separated)" class="w-full p-2 border rounded mb-2">
+            <input type="text" id="exclude-dirs" placeholder="Exclude directories (comma-separated, e.g., node_modules,dist)" class="w-full p-2 border rounded mb-2">
+            <input type="text" id="exclude-files" placeholder="Exclude specific files (comma-separated, e.g., README.md,LICENSE)" class="w-full p-2 border rounded mb-2">
             <button type="submit" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Convert</button>
         </form>
         <div id="loading" class="hidden">
@@ -73,7 +74,7 @@
                 accessToken = token;
                 githubLoginButton.classList.add('hidden');
                 userInfo.classList.remove('hidden');
-                userInfo.textContent = 'Signed in';
+                userInfo.textContent = '✅ Signed in';
                 repoForm.classList.remove('hidden');
                 // Remove the access token from the URL
                 window.history.replaceState({}, document.title, "/");
