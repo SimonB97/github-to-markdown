@@ -1,13 +1,22 @@
 const axios = require('axios');
 
 exports.handler = async function(event, context) {
-  if (event.httpMethod !== 'POST') {
+  const clientId = process.env.GITHUB_CLIENT_ID;
+  const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+
+  let code;
+  if (event.httpMethod === 'GET') {
+    code = event.queryStringParameters.code;
+  } else if (event.httpMethod === 'POST') {
+    const body = JSON.parse(event.body);
+    code = body.code;
+  } else {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const { code } = JSON.parse(event.body);
-  const clientId = process.env.GITHUB_CLIENT_ID;
-  const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+  if (!code) {
+    return { statusCode: 400, body: 'Missing code parameter' };
+  }
 
   try {
     const response = await axios.post('https://github.com/login/oauth/access_token', {
@@ -20,9 +29,13 @@ exports.handler = async function(event, context) {
       }
     });
 
+    // Redirect back to the main page with the access token
     return {
-      statusCode: 200,
-      body: JSON.stringify(response.data)
+      statusCode: 302,
+      headers: {
+        Location: `/?access_token=${response.data.access_token}`
+      },
+      body: ''
     };
   } catch (error) {
     console.error('Error exchanging code for token:', error);

@@ -30,30 +30,17 @@
             window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo`;
         });
 
-        // Check if we have a code from GitHub OAuth
+        // Check if we have an access token in the URL
         const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        if (code) {
-            exchangeCodeForToken(code);
-        }
-
-        async function exchangeCodeForToken(code) {
-            try {
-                const response = await fetch('/.netlify/functions/github-callback', {
-                    method: 'POST',
-                    body: JSON.stringify({ code }),
-                });
-                const data = await response.json();
-                if (data.access_token) {
-                    accessToken = data.access_token;
-                    document.getElementById('github-login').classList.add('hidden');
-                    document.getElementById('user-info').classList.remove('hidden');
-                    document.getElementById('user-info').textContent = 'Signed in';
-                    document.getElementById('repo-form').classList.remove('hidden');
-                }
-            } catch (error) {
-                console.error('Error exchanging code for token:', error);
-            }
+        const token = urlParams.get('access_token');
+        if (token) {
+            accessToken = token;
+            document.getElementById('github-login').classList.add('hidden');
+            document.getElementById('user-info').classList.remove('hidden');
+            document.getElementById('user-info').textContent = 'Signed in';
+            document.getElementById('repo-form').classList.remove('hidden');
+            // Remove the access token from the URL
+            window.history.replaceState({}, document.title, "/");
         }
 
         document.getElementById('repo-form').addEventListener('submit', async (e) => {
