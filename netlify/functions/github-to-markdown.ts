@@ -51,32 +51,44 @@ const processDirectory = async (
 
     for (const content of Array.isArray(contents) ? contents : [contents]) {
       console.log(`Processing item: ${content.path}`);
-      if (shouldExclude(content.path, excludeTypes, excludeDirs, excludeFiles)) {
-        console.log(`Excluding item: ${content.path}`);
-        continue;
-      }
-
-      if (content.type === 'dir') {
-        console.log(`Processing subdirectory: ${content.path}`);
-        markdown += await processDirectory(
-          octokit,
-          owner,
-          repo,
-          content.path,
-          excludeTypes,
-          excludeDirs,
-          excludeFiles
-        );
-      } else {
-        console.log(`Processing file: ${content.path}`);
-        const fileContent = Base64.decode(content.content);
-        markdown += `## ${content.path}\n\n`;
-        if (content.path.toLowerCase().endsWith('.md') || content.path.toLowerCase().endsWith('.markdown')) {
-          markdown += fileContent + '\n\n';
-        } else {
-          const fileExt = content.path.split('.').pop() || '';
-          markdown += '```' + fileExt + '\n' + fileContent + '\n```\n\n';
+      try {
+        if (shouldExclude(content.path, excludeTypes, excludeDirs, excludeFiles)) {
+          console.log(`Excluding item: ${content.path}`);
+          continue;
         }
+
+        if (content.type === 'dir') {
+          console.log(`Processing subdirectory: ${content.path}`);
+          markdown += await processDirectory(
+            octokit,
+            owner,
+            repo,
+            content.path,
+            excludeTypes,
+            excludeDirs,
+            excludeFiles
+          );
+        } else if (content.type === 'file') {
+          console.log(`Processing file: ${content.path}`);
+          const fileContent = await octokit.repos.getContent({
+            owner,
+            repo,
+            path: content.path,
+          }).then(response => Base64.decode((response.data as any).content));
+          
+          markdown += `## ${content.path}\n\n`;
+          if (content.path.toLowerCase().endsWith('.md') || content.path.toLowerCase().endsWith('.markdown')) {
+            markdown += fileContent + '\n\n';
+          } else {
+            const fileExt = content.path.split('.').pop() || '';
+            markdown += '```' + fileExt + '\n' + fileContent + '\n```\n\n';
+          }
+        } else {
+          console.log(`Skipping unknown item type: ${content.type} for ${content.path}`);
+        }
+      } catch (itemError) {
+        console.error(`Error processing item ${content.path}:`, itemError);
+        throw itemError;
       }
     }
     console.log(`Finished processing directory: ${path}`);
@@ -147,7 +159,11 @@ const handler: Handler = async (event) => {
     console.error('Error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'An error occurred while processing the repository', details: error.message }),
+      body: JSON.stringify({ 
+        error: 'An error occurred while processing the repository', 
+        details: error.message,
+        stack: error.stack
+      }),
     };
   }
 };
