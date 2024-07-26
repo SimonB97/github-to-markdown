@@ -106,7 +106,7 @@
                     if (response.ok) {
                         const markdownDisplay = document.getElementById('markdown-display');
                         markdownDisplay.textContent = data.markdown;
-                        markdownDisplay.innerHTML = '```markdown\n' + escapeHtml(data.markdown) + '\n```';
+                        markdownDisplay.innerHTML = escapeHtml(data.markdown);
                         hljs.highlightElement(markdownDisplay);
 
                         result.classList.remove('hidden');
