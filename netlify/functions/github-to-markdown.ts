@@ -77,12 +77,8 @@ const processDirectory = async (
           }).then(response => Base64.decode((response.data as any).content));
           
           markdown += `## ${content.path}\n\n`;
-          if (content.path.toLowerCase().endsWith('.md') || content.path.toLowerCase().endsWith('.markdown')) {
-            markdown += fileContent + '\n\n';
-          } else {
-            const fileExt = content.path.split('.').pop() || '';
-            markdown += '```' + fileExt + '\n' + fileContent + '\n```\n\n';
-          }
+          const fileExt = content.path.split('.').pop() || '';
+          markdown += '```' + fileExt + '\n' + fileContent + '\n```\n\n';
         } else {
           console.log(`Skipping unknown item type: ${content.type} for ${content.path}`);
         }

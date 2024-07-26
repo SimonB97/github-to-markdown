@@ -106,8 +106,8 @@
                     if (response.ok) {
                         const markdownDisplay = document.getElementById('markdown-display');
                         markdownDisplay.textContent = data.markdown;
-                        markdownDisplay.innerHTML = escapeHtml(data.markdown);
-                        hljs.highlightElement(markdownDisplay);
+                        markdownDisplay.innerHTML = marked.parse(escapeHtml(data.markdown));
+                        hljs.highlightAll();
 
                         result.classList.remove('hidden');
                     } else if (response.status === 401) {
