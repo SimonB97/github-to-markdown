@@ -6,6 +6,9 @@
     <title>GitHub to Markdown Converter</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/markdown.min.js"></script>
 </head>
 <body class="bg-gray-100 p-8">
     <div class="max-w-2xl mx-auto">
@@ -21,7 +24,13 @@
             <input type="text" id="exclude-files" placeholder="Exclude specific files (comma-separated)" class="w-full p-2 border rounded mb-2">
             <button type="submit" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Convert</button>
         </form>
-        <div id="result" class="bg-white p-4 rounded shadow"></div>
+        <div id="result" class="bg-white p-4 rounded shadow hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Generated Markdown</h2>
+                <button id="copy-button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Copy</button>
+            </div>
+            <pre id="markdown-display" class="bg-gray-100 p-4 rounded overflow-auto max-h-96"></pre>
+        </div>
     </div>
 
     <script>
@@ -53,6 +62,7 @@
             const excludeDirs = document.getElementById('exclude-dirs').value;
             const excludeFiles = document.getElementById('exclude-files').value;
             const result = document.getElementById('result');
+            result.classList.remove('hidden');
             result.innerHTML = 'Converting...';
 
             try {
@@ -72,7 +82,11 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    result.innerHTML = marked.parse(data.markdown);
+                    const markdownDisplay = document.getElementById('markdown-display');
+                    markdownDisplay.textContent = data.markdown;
+                    markdownDisplay.innerHTML = '```markdown\n' + escapeHtml(data.markdown) + '\n```';
+                    result.classList.remove('hidden');
+                    hljs.highlightElement(markdownDisplay);
                 } else if (response.status === 401) {
                     throw new Error('Unauthorized: Please sign in with GitHub again.');
                 } else {
@@ -81,6 +95,30 @@
             } catch (error) {
                 result.textContent = `Error: ${error.message}`;
             }
+        });
+    </script>
+
+    <script>
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Markdown copied to clipboard!');
+            }, (err) => {
+                console.error('Could not copy text: ', err);
+            });
+        }
+
+        document.getElementById('copy-button').addEventListener('click', () => {
+            const markdownContent = document.getElementById('markdown-display').textContent;
+            copyToClipboard(markdownContent);
         });
     </script>
 </body>
