@@ -15,7 +15,10 @@
             <span id="user-info" class="ml-4 hidden"></span>
         </div>
         <form id="repo-form" class="mb-4 hidden">
-            <input type="text" id="repo-url" placeholder="Enter GitHub repo URL" required class="w-full p-2 border rounded">
+            <input type="text" id="repo-url" placeholder="Enter GitHub repo URL" required class="w-full p-2 border rounded mb-2">
+            <input type="text" id="exclude-types" placeholder="Exclude file types (e.g., .pyc,.txt)" class="w-full p-2 border rounded mb-2">
+            <input type="text" id="exclude-dirs" placeholder="Exclude directories (comma-separated)" class="w-full p-2 border rounded mb-2">
+            <input type="text" id="exclude-files" placeholder="Exclude specific files (comma-separated)" class="w-full p-2 border rounded mb-2">
             <button type="submit" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Convert</button>
         </form>
         <div id="result" class="bg-white p-4 rounded shadow"></div>
@@ -46,6 +49,9 @@
         document.getElementById('repo-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const repoUrl = document.getElementById('repo-url').value;
+            const excludeTypes = document.getElementById('exclude-types').value;
+            const excludeDirs = document.getElementById('exclude-dirs').value;
+            const excludeFiles = document.getElementById('exclude-files').value;
             const result = document.getElementById('result');
             result.innerHTML = 'Converting...';
 
@@ -54,13 +60,21 @@
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ repoUrl }),
+                    body: JSON.stringify({ 
+                        repoUrl, 
+                        excludeTypes, 
+                        excludeDirs, 
+                        excludeFiles 
+                    }),
                 });
                 const data = await response.json();
                 
                 if (response.ok) {
                     result.innerHTML = marked.parse(data.markdown);
+                } else if (response.status === 401) {
+                    throw new Error('Unauthorized: Please sign in with GitHub again.');
                 } else {
                     throw new Error(data.error || 'Failed to convert repository');
                 }
