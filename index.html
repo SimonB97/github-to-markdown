@@ -11,8 +11,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/markdown.min.js"></script>
 </head>
 <body class="bg-gray-100 p-8">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 class="text-3xl font-bold mb-4">GitHub to Markdown Converter</h1>
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
+        <h1 class="text-3xl font-bold mb-4 text-gray-800">GitHub to Markdown Converter</h1>
         <div id="auth-section" class="mb-4">
             <button id="github-login" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">Sign in with GitHub</button>
             <span id="user-info" class="ml-4 hidden"></span>
@@ -31,10 +31,10 @@
         </div>
         <div id="result" class="hidden">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">Generated Markdown</h2>
+                <h2 class="text-xl font-bold text-gray-800">Generated Markdown</h2>
                 <button id="copy-button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Copy</button>
             </div>
-            <pre id="markdown-display" class="bg-gray-100 p-6 rounded-lg shadow-md overflow-auto max-h-96"></pre>
+            <div id="markdown-display" class="bg-gray-50 p-6 rounded-lg shadow-inner overflow-auto max-h-96 border border-gray-200"></div>
         </div>
     </div>
 
@@ -107,6 +107,13 @@
                         const markdownDisplay = document.getElementById('markdown-display');
                         markdownDisplay.textContent = data.markdown;
                         markdownDisplay.innerHTML = marked.parse(escapeHtml(data.markdown));
+                        
+                        // Add custom styling to code blocks
+                        const codeBlocks = markdownDisplay.querySelectorAll('pre code');
+                        codeBlocks.forEach((block) => {
+                            block.classList.add('bg-gray-800', 'text-white', 'p-4', 'rounded', 'overflow-x-auto');
+                        });
+
                         hljs.highlightAll();
 
                         result.classList.remove('hidden');
