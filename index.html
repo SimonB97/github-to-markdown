@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub to Markdown Converter</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <h1>GitHub to Markdown Converter</h1>
+    <form id="repo-form">
+        <input type="text" id="repo-url" placeholder="Enter GitHub repo URL" required>
+        <button type="submit">Convert</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('repo-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const repoUrl = document.getElementById('repo-url').value;
+            const result = document.getElementById('result');
+            result.innerHTML = 'Converting...';
+
+            try {
+                const [owner, repo] = repoUrl.split('/').slice(-2);
+                const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents`);
+                const data = await response.json();
+                
+                let markdown = `# ${repo}\n\n`;
+                for (const file of data) {
+                    if (file.type === 'file' && file.name.endsWith('.md')) {
+                        const contentResponse = await fetch(file.download_url);
+                        const content = await contentResponse.text();
+                        markdown += `## ${file.name}\n\n${content}\n\n`;
+                    }
+                }
+                
+                result.innerHTML = marked.parse(markdown);
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
