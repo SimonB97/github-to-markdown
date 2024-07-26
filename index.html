@@ -11,7 +11,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/markdown.min.js"></script>
 </head>
 <body class="bg-gray-100 p-8">
-    <div class="max-w-2xl mx-auto">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 class="text-3xl font-bold mb-4">GitHub to Markdown Converter</h1>
         <div id="auth-section" class="mb-4">
             <button id="github-login" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">Sign in with GitHub</button>
@@ -24,13 +24,22 @@
             <input type="text" id="exclude-files" placeholder="Exclude specific files (comma-separated)" class="w-full p-2 border rounded mb-2">
             <button type="submit" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Convert</button>
         </form>
-        <div id="result">
+        <div id="loading" class="hidden">
+            <div class="flex items-center justify-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            </div>
+        </div>
+        <div id="result" class="hidden">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold">Generated Markdown</h2>
                 <button id="copy-button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Copy</button>
             </div>
-            <pre id="markdown-display" class="bg-gray-100 p-4 rounded overflow-auto max-h-96"></pre>
+            <pre id="markdown-display" class="bg-gray-100 p-6 rounded-lg shadow-md overflow-auto max-h-96"></pre>
         </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg opacity-0 transition-opacity duration-300 ease-in-out">
+        Copied to clipboard!
     </div>
 
     <script>
@@ -73,15 +82,9 @@
                 const excludeTypes = (document.getElementById('exclude-types')).value;
                 const excludeDirs = (document.getElementById('exclude-dirs')).value;
                 const excludeFiles = (document.getElementById('exclude-files')).value;
-                result.innerHTML = `
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold">Generated Markdown</h2>
-                        <button id="copy-button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Copy</button>
-                    </div>
-                    <pre id="markdown-display" class="bg-gray-100 p-4 rounded overflow-auto max-h-96"></pre>
-                `;
-                const updatedMarkdownDisplay = document.getElementById('markdown-display');
-                const updatedCopyButton = document.getElementById('copy-button');
+                
+                document.getElementById('loading').classList.remove('hidden');
+                result.classList.add('hidden');
 
                 try {
                     const response = await fetch('/.netlify/functions/github-to-markdown', {
@@ -101,27 +104,12 @@
                     const data = await response.json();
                     
                     if (response.ok) {
-                        updatedMarkdownDisplay.textContent = data.markdown;
-                        updatedMarkdownDisplay.innerHTML = '```markdown\n' + escapeHtml(data.markdown) + '\n```';
-                        hljs.highlightElement(updatedMarkdownDisplay);
+                        const markdownDisplay = document.getElementById('markdown-display');
+                        markdownDisplay.textContent = data.markdown;
+                        markdownDisplay.innerHTML = '```markdown\n' + escapeHtml(data.markdown) + '\n```';
+                        hljs.highlightElement(markdownDisplay);
 
-                        // Add the event listener for the copy button here
-                        updatedCopyButton.addEventListener('click', () => {
-                            const markdownContent = updatedMarkdownDisplay.textContent;
-                            if (markdownContent) {
-                                navigator.clipboard.writeText(markdownContent)
-                                    .then(() => {
-                                        alert('Markdown copied to clipboard!');
-                                    })
-                                    .catch((err) => {
-                                        console.error('Could not copy text: ', err);
-                                        alert('Failed to copy to clipboard. Please try again.');
-                                    });
-                            } else {
-                                alert('No content to copy.');
-                            }
-                        });
-
+                        result.classList.remove('hidden');
                     } else if (response.status === 401) {
                         throw new Error('Unauthorized: Please sign in with GitHub again.');
                     } else {
@@ -129,6 +117,9 @@
                     }
                 } catch (error) {
                     result.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+                    result.classList.remove('hidden');
+                } finally {
+                    document.getElementById('loading').classList.add('hidden');
                 }
             });
 
@@ -141,30 +132,25 @@
                     .replace(/'/g, "&#039;");
             }
 
-            function copyToClipboard(text) {
-                navigator.clipboard.writeText(text).then(() => {
-                    alert('Markdown copied to clipboard!');
-                }, (err) => {
-                    console.error('Could not copy text: ', err);
-                });
-            }
-
-            // Remove any existing copy button event listener here if it exists
-            copyButton.removeEventListener('click', () => {
-                const markdownContent = markdownDisplay.textContent;
+            document.getElementById('copy-button').addEventListener('click', () => {
+                const markdownContent = document.getElementById('markdown-display').textContent;
                 if (markdownContent) {
                     navigator.clipboard.writeText(markdownContent)
-                        .then(() => {
-                            alert('Markdown copied to clipboard!');
-                        })
-                        .catch((err) => {
-                            console.error('Could not copy text: ', err);
-                            alert('Failed to copy to clipboard. Please try again.');
-                        });
-                } else {
-                    alert('No content to copy.');
+                        .then(() => showToast('Copied to clipboard!'))
+                        .catch(() => showToast('Failed to copy. Please try again.'));
                 }
             });
+
+            function showToast(message) {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.classList.remove('opacity-0');
+                toast.classList.add('opacity-100');
+                setTimeout(() => {
+                    toast.classList.remove('opacity-100');
+                    toast.classList.add('opacity-0');
+                }, 3000);
+            }
         });
     </script>
 </body>
