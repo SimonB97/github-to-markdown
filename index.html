@@ -34,91 +34,96 @@
     </div>
 
     <script>
-        const clientId = 'Ov23li5mLRGHTrnFJ7nY';
-        const redirectUri = 'https://gh-md.netlify.app/.netlify/functions/github-callback';
-        let accessToken = null;
+        document.addEventListener('DOMContentLoaded', () => {
+            const clientId = 'Ov23li5mLRGHTrnFJ7nY';
+            const redirectUri = 'https://gh-md.netlify.app/.netlify/functions/github-callback';
+            let accessToken = null;
 
-        document.getElementById('github-login').addEventListener('click', () => {
-            window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo`;
-        });
-
-        // Check if we have an access token in the URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('access_token');
-        if (token) {
-            accessToken = token;
-            document.getElementById('github-login').classList.add('hidden');
-            document.getElementById('user-info').classList.remove('hidden');
-            document.getElementById('user-info').textContent = 'Signed in';
-            document.getElementById('repo-form').classList.remove('hidden');
-            // Remove the access token from the URL
-            window.history.replaceState({}, document.title, "/");
-        }
-
-        document.getElementById('repo-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const repoUrl = document.getElementById('repo-url').value;
-            const excludeTypes = document.getElementById('exclude-types').value;
-            const excludeDirs = document.getElementById('exclude-dirs').value;
-            const excludeFiles = document.getElementById('exclude-files').value;
+            const githubLoginButton = document.getElementById('github-login');
+            const userInfo = document.getElementById('user-info');
+            const repoForm = document.getElementById('repo-form');
             const result = document.getElementById('result');
-            result.classList.remove('hidden');
-            result.innerHTML = 'Converting...';
+            const markdownDisplay = document.getElementById('markdown-display');
+            const copyButton = document.getElementById('copy-button');
 
-            try {
-                const response = await fetch('/.netlify/functions/github-to-markdown', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        repoUrl, 
-                        excludeTypes, 
-                        excludeDirs, 
-                        excludeFiles 
-                    }),
-                });
-                const data = await response.json();
-                
-                if (response.ok) {
-                    const markdownDisplay = document.getElementById('markdown-display');
-                    markdownDisplay.textContent = data.markdown;
-                    markdownDisplay.innerHTML = '```markdown\n' + escapeHtml(data.markdown) + '\n```';
-                    result.classList.remove('hidden');
-                    hljs.highlightElement(markdownDisplay);
-                } else if (response.status === 401) {
-                    throw new Error('Unauthorized: Please sign in with GitHub again.');
-                } else {
-                    throw new Error(data.error || 'Failed to convert repository');
-                }
-            } catch (error) {
-                result.textContent = `Error: ${error.message}`;
-            }
-        });
-    </script>
-
-    <script>
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Markdown copied to clipboard!');
-            }, (err) => {
-                console.error('Could not copy text: ', err);
+            githubLoginButton.addEventListener('click', () => {
+                window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo`;
             });
-        }
 
-        document.getElementById('copy-button').addEventListener('click', () => {
-            const markdownContent = document.getElementById('markdown-display').textContent;
-            copyToClipboard(markdownContent);
+            // Check if we have an access token in the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('access_token');
+            if (token) {
+                accessToken = token;
+                githubLoginButton.classList.add('hidden');
+                userInfo.classList.remove('hidden');
+                userInfo.textContent = 'Signed in';
+                repoForm.classList.remove('hidden');
+                // Remove the access token from the URL
+                window.history.replaceState({}, document.title, "/");
+            }
+
+            repoForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const repoUrl = document.getElementById('repo-url').value;
+                const excludeTypes = document.getElementById('exclude-types').value;
+                const excludeDirs = document.getElementById('exclude-dirs').value;
+                const excludeFiles = document.getElementById('exclude-files').value;
+                result.classList.remove('hidden');
+                result.innerHTML = 'Converting...';
+
+                try {
+                    const response = await fetch('/.netlify/functions/github-to-markdown', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                            repoUrl, 
+                            excludeTypes, 
+                            excludeDirs, 
+                            excludeFiles 
+                        }),
+                    });
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        markdownDisplay.textContent = data.markdown;
+                        markdownDisplay.innerHTML = '```markdown\n' + escapeHtml(data.markdown) + '\n```';
+                        result.classList.remove('hidden');
+                        hljs.highlightElement(markdownDisplay);
+                    } else if (response.status === 401) {
+                        throw new Error('Unauthorized: Please sign in with GitHub again.');
+                    } else {
+                        throw new Error(data.error || 'Failed to convert repository');
+                    }
+                } catch (error) {
+                    result.textContent = `Error: ${error.message}`;
+                }
+            });
+
+            function escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+            function copyToClipboard(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Markdown copied to clipboard!');
+                }, (err) => {
+                    console.error('Could not copy text: ', err);
+                });
+            }
+
+            copyButton.addEventListener('click', () => {
+                const markdownContent = markdownDisplay.textContent;
+                copyToClipboard(markdownContent);
+            });
         });
     </script>
 </body>
