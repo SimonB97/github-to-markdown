@@ -72,7 +72,10 @@
                 result.classList.remove('hidden');
                 result.innerHTML = 'Converting...';
 
+                console.log('Submitting form with data:', { repoUrl, excludeTypes, excludeDirs, excludeFiles });
+
                 try {
+                    console.log('Sending request to backend');
                     const response = await fetch('/.netlify/functions/github-to-markdown', {
                         method: 'POST',
                         headers: {
@@ -86,19 +89,25 @@
                             excludeFiles 
                         }),
                     });
+                    console.log('Received response from backend');
                     const data = await response.json();
+                    console.log('Parsed response data:', data);
                     
                     if (response.ok) {
+                        console.log('Response OK, updating UI');
                         markdownDisplay.textContent = data.markdown;
                         markdownDisplay.innerHTML = '```markdown\n' + escapeHtml(data.markdown) + '\n```';
                         result.classList.remove('hidden');
                         hljs.highlightElement(markdownDisplay);
                     } else if (response.status === 401) {
+                        console.error('Unauthorized error');
                         throw new Error('Unauthorized: Please sign in with GitHub again.');
                     } else {
+                        console.error('Other error:', data.error);
                         throw new Error(data.error || 'Failed to convert repository');
                     }
                 } catch (error) {
+                    console.error('Caught error:', error);
                     result.textContent = `Error: ${error.message}`;
                 }
             });
