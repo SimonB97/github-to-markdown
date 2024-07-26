@@ -1,7 +1,9 @@
 {
-    "name": "github-to-markdown",
-    "version": "1.0.0",
-    "dependencies": {
-      "axios": "^0.21.1"
-    }
+  "name": "github-to-markdown",
+  "version": "1.0.0",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "@octokit/rest": "^18.12.0",
+    "js-base64": "^3.7.2"
   }
+}
