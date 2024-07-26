@@ -44,6 +44,10 @@
             const repoForm = document.getElementById('repo-form');
             const result = document.getElementById('result');
             const markdownDisplay = document.getElementById('markdown-display');
+            if (!markdownDisplay) {
+                console.error('markdownDisplay element not found');
+                return;
+            }
             const copyButton = document.getElementById('copy-button');
 
             githubLoginButton.addEventListener('click', () => {
@@ -95,10 +99,16 @@
                     
                     if (response.ok) {
                         console.log('Response OK, updating UI');
+                        console.log('Markdown content length:', data.markdown.length);
                         markdownDisplay.textContent = data.markdown;
+                        console.log('TextContent set');
                         markdownDisplay.innerHTML = '```markdown\n' + escapeHtml(data.markdown) + '\n```';
+                        console.log('innerHTML set');
                         result.classList.remove('hidden');
+                        console.log('Hidden class removed from result');
                         hljs.highlightElement(markdownDisplay);
+                        console.log('Highlight applied');
+                        console.log('Final innerHTML length:', markdownDisplay.innerHTML.length);
                     } else if (response.status === 401) {
                         console.error('Unauthorized error');
                         throw new Error('Unauthorized: Please sign in with GitHub again.');
