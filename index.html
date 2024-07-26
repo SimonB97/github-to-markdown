@@ -81,6 +81,7 @@
                     <pre id="markdown-display" class="bg-gray-100 p-4 rounded overflow-auto max-h-96"></pre>
                 `;
                 const updatedMarkdownDisplay = document.getElementById('markdown-display');
+                const updatedCopyButton = document.getElementById('copy-button');
 
                 try {
                     const response = await fetch('/.netlify/functions/github-to-markdown', {
@@ -130,8 +131,8 @@
                 });
             }
 
-            copyButton.addEventListener('click', () => {
-                const markdownContent = markdownDisplay.textContent;
+            updatedCopyButton.addEventListener('click', () => {
+                const markdownContent = updatedMarkdownDisplay.textContent;
                 if (markdownContent) {
                     navigator.clipboard.writeText(markdownContent)
                         .then(() => {
