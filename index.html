@@ -104,6 +104,24 @@
                         updatedMarkdownDisplay.textContent = data.markdown;
                         updatedMarkdownDisplay.innerHTML = '```markdown\n' + escapeHtml(data.markdown) + '\n```';
                         hljs.highlightElement(updatedMarkdownDisplay);
+
+                        // Add the event listener for the copy button here
+                        updatedCopyButton.addEventListener('click', () => {
+                            const markdownContent = updatedMarkdownDisplay.textContent;
+                            if (markdownContent) {
+                                navigator.clipboard.writeText(markdownContent)
+                                    .then(() => {
+                                        alert('Markdown copied to clipboard!');
+                                    })
+                                    .catch((err) => {
+                                        console.error('Could not copy text: ', err);
+                                        alert('Failed to copy to clipboard. Please try again.');
+                                    });
+                            } else {
+                                alert('No content to copy.');
+                            }
+                        });
+
                     } else if (response.status === 401) {
                         throw new Error('Unauthorized: Please sign in with GitHub again.');
                     } else {
@@ -131,8 +149,9 @@
                 });
             }
 
-            updatedCopyButton.addEventListener('click', () => {
-                const markdownContent = updatedMarkdownDisplay.textContent;
+            // Remove any existing copy button event listener here if it exists
+            copyButton.removeEventListener('click', () => {
+                const markdownContent = markdownDisplay.textContent;
                 if (markdownContent) {
                     navigator.clipboard.writeText(markdownContent)
                         .then(() => {
