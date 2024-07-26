@@ -38,17 +38,17 @@
             const clientId = 'Ov23li5mLRGHTrnFJ7nY';
             const redirectUri = 'https://gh-md.netlify.app/.netlify/functions/github-callback';
             let accessToken = null;
-
             const githubLoginButton = document.getElementById('github-login');
             const userInfo = document.getElementById('user-info');
             const repoForm = document.getElementById('repo-form');
             const result = document.getElementById('result');
             const markdownDisplay = document.getElementById('markdown-display');
+            const copyButton = document.getElementById('copy-button');
+
             if (!markdownDisplay) {
                 console.error('markdownDisplay element not found');
                 return;
             }
-            const copyButton = document.getElementById('copy-button');
 
             githubLoginButton.addEventListener('click', () => {
                 window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo`;
@@ -69,17 +69,20 @@
 
             repoForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const repoUrl = document.getElementById('repo-url').value;
-                const excludeTypes = document.getElementById('exclude-types').value;
-                const excludeDirs = document.getElementById('exclude-dirs').value;
-                const excludeFiles = document.getElementById('exclude-files').value;
-                result.innerHTML = '<div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">Generated Markdown</h2><button id="copy-button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Copy</button></div><pre id="markdown-display" class="bg-gray-100 p-4 rounded overflow-auto max-h-96"></pre>';
-                markdownDisplay = document.getElementById('markdown-display');
-
-                console.log('Submitting form with data:', { repoUrl, excludeTypes, excludeDirs, excludeFiles });
+                const repoUrl = (document.getElementById('repo-url')).value;
+                const excludeTypes = (document.getElementById('exclude-types')).value;
+                const excludeDirs = (document.getElementById('exclude-dirs')).value;
+                const excludeFiles = (document.getElementById('exclude-files')).value;
+                result.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">Generated Markdown</h2>
+                        <button id="copy-button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Copy</button>
+                    </div>
+                    <pre id="markdown-display" class="bg-gray-100 p-4 rounded overflow-auto max-h-96"></pre>
+                `;
+                const updatedMarkdownDisplay = document.getElementById('markdown-display');
 
                 try {
-                    console.log('Sending request to backend');
                     const response = await fetch('/.netlify/functions/github-to-markdown', {
                         method: 'POST',
                         headers: {
@@ -93,30 +96,19 @@
                             excludeFiles 
                         }),
                     });
-                    console.log('Received response from backend');
+
                     const data = await response.json();
-                    console.log('Parsed response data:', data);
                     
                     if (response.ok) {
-                        console.log('Response OK, updating UI');
-                        console.log('Markdown content length:', data.markdown.length);
-                        markdownDisplay.textContent = data.markdown;
-                        console.log('TextContent set');
-                        markdownDisplay.innerHTML = '```markdown\n' + escapeHtml(data.markdown) + '\n```';
-                        console.log('innerHTML set');
-                        console.log('Hidden class removed from result');
-                        hljs.highlightElement(markdownDisplay);
-                        console.log('Highlight applied');
-                        console.log('Final innerHTML length:', markdownDisplay.innerHTML.length);
+                        updatedMarkdownDisplay.textContent = data.markdown;
+                        updatedMarkdownDisplay.innerHTML = '```markdown\n' + escapeHtml(data.markdown) + '\n```';
+                        hljs.highlightElement(updatedMarkdownDisplay);
                     } else if (response.status === 401) {
-                        console.error('Unauthorized error');
                         throw new Error('Unauthorized: Please sign in with GitHub again.');
                     } else {
-                        console.error('Other error:', data.error);
                         throw new Error(data.error || 'Failed to convert repository');
                     }
                 } catch (error) {
-                    console.error('Caught error:', error);
                     result.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
                 }
             });
@@ -140,7 +132,9 @@
 
             copyButton.addEventListener('click', () => {
                 const markdownContent = markdownDisplay.textContent;
-                copyToClipboard(markdownContent);
+                if (markdownContent) {
+                    copyToClipboard(markdownContent);
+                }
             });
         });
     </script>
