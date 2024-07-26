@@ -155,11 +155,15 @@
             document.getElementById('download-button').addEventListener('click', () => {
                 const markdownContent = document.getElementById('markdown-display').textContent;
                 if (markdownContent) {
+                    const repoUrl = document.getElementById('repo-url').value;
+                    const repoName = getRepoNameFromUrl(repoUrl);
+                    const fileName = `${repoName || 'repository'}.md`;
+
                     const blob = new Blob([markdownContent], { type: 'text/markdown' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'repository.md';
+                    a.download = fileName;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
@@ -169,6 +173,11 @@
                     showToast('No content to download. Please convert a repository first.');
                 }
             });
+
+            function getRepoNameFromUrl(url) {
+                const match = url.match(/github\.com\/[^\/]+\/([^\/]+)/);
+                return match ? match[1] : null;
+            }
 
             function showToast(message) {
                 const toast = document.getElementById('toast');
