@@ -1,6 +1,8 @@
 # GitHub to Markdown Converter
 
-This small web application allows users to convert GitHub repositories into a single Markdown file. It's inspired by the [Copy Text Selected Files](https://marketplace.visualstudio.com/items?itemName=iyulab.copy-text-selected-files) VS Code extension by iyulab.
+![alt text](image.png)
+
+This simple web application allows users to convert GitHub repositories into a single Markdown file. It's inspired by the [Copy Text Selected Files](https://marketplace.visualstudio.com/items?itemName=iyulab.copy-text-selected-files) VS Code extension by iyulab.
 
 ## Features
 
