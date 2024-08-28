@@ -24,6 +24,7 @@
         </div>
         <form id="repo-form" class="mb-4 hidden">
             <input type="text" id="repo-url" placeholder="Enter GitHub repo URL (e.g., https://github.com/username/repo)" required class="w-full p-2 border rounded mb-2">
+            <input type="text" id="include-path" placeholder="Include path (e.g., src)" class="w-full p-2 border rounded mb-2">
             <input type="text" id="exclude-types" placeholder="Exclude file types (e.g., .pyc,.txt)" class="w-full p-2 border rounded mb-2">
             <input type="text" id="exclude-dirs" placeholder="Exclude directories (comma-separated, e.g., node_modules,dist)" class="w-full p-2 border rounded mb-2">
             <input type="text" id="exclude-files" placeholder="Exclude specific files (comma-separated, e.g., README.md,LICENSE)" class="w-full p-2 border rounded mb-2">
@@ -86,10 +87,11 @@
 
             repoForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const repoUrl = (document.getElementById('repo-url')).value;
-                const excludeTypes = (document.getElementById('exclude-types')).value;
-                const excludeDirs = (document.getElementById('exclude-dirs')).value;
-                const excludeFiles = (document.getElementById('exclude-files')).value;
+                const repoUrl = document.getElementById('repo-url').value;
+                const includePath = document.getElementById('include-path').value;
+                const excludeTypes = document.getElementById('exclude-types').value;
+                const excludeDirs = document.getElementById('exclude-dirs').value;
+                const excludeFiles = document.getElementById('exclude-files').value;
                 
                 document.getElementById('loading').classList.remove('hidden');
                 result.classList.add('hidden');
@@ -103,6 +105,7 @@
                         },
                         body: JSON.stringify({ 
                             repoUrl, 
+                            includePath,
                             excludeTypes, 
                             excludeDirs, 
                             excludeFiles 
@@ -143,7 +146,7 @@
                     .replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
+                    .replace(/"//g, "&quot;")
                     .replace(/'/g, "&#039;");
             }
 
